@@ -1,0 +1,10 @@
+dist/
+bubbletea/
+lipgloss/
+prompt/
+data/
+pod.normal.json
+util/
+ui/
+.idea/
+.DS_Store
