@@ -1,4 +1,11 @@
-kubernetes dashboard terminal 替代品
+kubernetes dashboard "替代品"
+
+在terminal发起http请求查看kubernetes相关的信息
+
+> 注意 
+>
+> 1. 本程序以查看当前namespace、deployment、pod等信息为主， 面向业务开发人员，主要原因是权限受限。如果是运维人员绕行即可
+> 2. 当前只是试用与token登录方法，暂不支持kubeConfig方式 
 
 #### 1. 安装
 
@@ -49,3 +56,18 @@ k8s-terminal pod --ns <namespace> -n <pod name>
 k8s-terminal pod --pod-namespace <namespace> --pod-name <pod name>
 k8s-terminal pod --ns <namespace> -n <pod name> -e
 ````
+
+##### 2.5 更多
+
+更多的使用细节查看帮助文档
+
+````shell script
+k8s-terminal -h
+k8s-terminal <command> -h
+````
+
+#### 附录
+
+1. bubbletea
+
+
