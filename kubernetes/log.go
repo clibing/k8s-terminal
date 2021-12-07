@@ -15,6 +15,7 @@ type LogModel struct {
 	pod                                  string
 	offsetFrom, offsetTo, pageSize, tail int
 	first                                bool
+	containerName                        string
 }
 
 const (
@@ -39,7 +40,6 @@ var (
 	logFilePosition               = "end"
 	line                          = 5
 	current                       = 0
-	//ticker                                       *time.Ticker
 )
 
 type SearchLog struct {
@@ -84,9 +84,12 @@ func fetLog() {
 		}
 		fmt.Println("e")
 	}()
-
+	loadLogFirst := true
 	for {
-		data := LM.Log(LM.namespace, LM.pod, LM.offsetFrom, LM.offsetTo, LM.pageSize, false)
+		data := LM.Log(LM.namespace, LM.pod, LM.offsetFrom, LM.offsetTo, LM.pageSize, loadLogFirst)
+		if loadLogFirst {
+			LM.containerName = data.Info.ContainerName
+		}
 		for _, log := range data.Logs {
 			_, ok := logMap[log.Timestamp.String()]
 			if ok {
@@ -98,6 +101,7 @@ func fetLog() {
 			logData = append(logData, log)
 		}
 		time.Sleep(time.Second * 5)
+		loadLogFirst = false
 	}
 }
 
@@ -189,7 +193,6 @@ func showSearchNext(next bool) {
 		time.Sleep(time.Millisecond * 100)
 	}
 	fmt.Println("----------------------------------------------------------------------------<<<<<<<<<<<<<<<<<")
-
 
 	// 向下
 	if next {
@@ -372,10 +375,8 @@ func (m *LogModel) Log(namespace, name string, offsetFrom, offsetTo, pageSize in
 	if first {
 		url = fmt.Sprintf("https://%s:%d/api/v1/log/%s/%s", m.req.Ip, m.req.Port, namespace, name)
 	} else {
-		offsetFrom = offsetFrom + pageSize
-		offsetTo = offsetTo + pageSize
 		if isAuto() {
-			url = fmt.Sprintf("https://%s:%d/api/v1/log/%s/%s/grpc-server?logFilePosition=%s&offsetFrom=%d&offsetTo=%d&previous=false&referenceLineNum=0&referenceTimestamp=newest", m.req.Ip, m.req.Port, namespace, name, logFilePosition, offsetFrom, offsetTo)
+			url = fmt.Sprintf("https://%s:%d/api/v1/log/%s/%s/%s?logFilePosition=%s&offsetFrom=%d&offsetTo=%d&previous=false&referenceLineNum=0&referenceTimestamp=newest", m.req.Ip, m.req.Port, namespace, name, m.containerName, logFilePosition, offsetFrom, offsetTo)
 		} else {
 			//fmt.Println("不是自动模式，需要提供正确的URL")
 			//url = fmt.Sprintf("https://%s:%d/api/v1/log/%s/%s/grpc-server?logFilePosition=%s&offsetFrom=%d&offsetTo=%d&previous=false&referenceLineNum=0&referenceTimestamp=newest", m.req.Ip, m.req.Port, namespace, name, logFilePosition, offsetFrom, offsetTo)
