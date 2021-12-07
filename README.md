@@ -18,6 +18,13 @@ chmod a+x k8s-terminal_darwin_amd64
 ./k8s-terminal_darwin_amd64 install  # 默认安装到 /usr/local/bin/ 目录下
 ```
 
+或者 下载源码直接make编译
+
+```shell script
+cd k8s-terminal
+make
+```
+
 #### 2. 使用
 
 ##### 2.1 初始化
