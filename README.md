@@ -5,7 +5,7 @@ kubernetes dashboard "替代品"
 > 注意 
 >
 > 1. 本程序以查看当前namespace、deployment、pod等信息为主， 面向业务开发人员，主要原因是权限受限。如果是运维人员绕行即可
-> 2. 当前只是试用与token登录方法，暂不支持kubeConfig方式 
+> 2. 当前只是使用与token登录方法，暂不支持kubeConfig方式 
 
 #### 1. 安装
 
