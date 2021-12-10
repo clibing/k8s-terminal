@@ -4,7 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/mitchellh/go-homedir"
+	"io/ioutil"
+	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -14,7 +18,7 @@ type LogModel struct {
 	BaseModel
 	pod                                  string
 	offsetFrom, offsetTo, pageSize, tail int
-	first                                bool
+	first, download                      bool
 	containerName                        string
 }
 
@@ -399,7 +403,6 @@ func (m *LogModel) TailLog(req *Request, namespace, name string, pageSize, tail 
 		BaseModel: BaseModel{
 			namespace: namespace,
 			req:       req,
-			name:      []string{"show", "log"},
 		},
 		pod:        name,
 		offsetFrom: 2000000000,
@@ -414,4 +417,27 @@ func (m *LogModel) TailLog(req *Request, namespace, name string, pageSize, tail 
 		fmt.Println("start failed:", err)
 		os.Exit(1)
 	}
+}
+
+func (m *LogModel) DownloadLog(path string) {
+	pod := m.Log(m.namespace, m.pod, m.offsetFrom, m.offsetTo, m.pageSize, true)
+	m.containerName = pod.Info.ContainerName
+
+	url := fmt.Sprintf("https://%s:%d/api/v1/log/file/%s/%s/%s?previous=false", m.req.Ip, m.req.Port, m.namespace, m.pod, m.containerName)
+	data, err := commonRequest(url, false, nil, false, true, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	homedir, err := homedir.Dir()
+	if err != nil {
+		log.Panicln("home dir err")
+		return
+	}
+	if path == "" {
+		path = homedir
+	}
+	fileName := m.pod + "-" + m.containerName + ".log"
+	value := filepath.Join(path, fileName)
+	ioutil.WriteFile(value, []byte(data), 0755)
 }

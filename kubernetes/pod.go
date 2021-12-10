@@ -98,7 +98,7 @@ func (m *PodModel) PodList(namespace, filter string, pageNumber, pageSize int) (
 	return
 }
 
-func ShowPod(req *Request, namespace, filter string, log bool, pageSize, tail int) (err error) {
+func ShowPod(req *Request, namespace, filter string, log bool, pageSize, tail int, download bool, downloadPath string) (err error) {
 	p := PodModel{
 		BaseModel: BaseModel{
 			namespace:  namespace,
@@ -121,8 +121,8 @@ func ShowPod(req *Request, namespace, filter string, log bool, pageSize, tail in
 		return
 	}
 
-	if !log {
-		fmt.Println("没有开启实时日志功能，自动退出")
+	if !log && !download {
+		fmt.Println("没有开启实时日志功能或者下载功能，自动退出")
 		return
 	}
 	tl := LogModel{
@@ -132,7 +132,13 @@ func ShowPod(req *Request, namespace, filter string, log bool, pageSize, tail in
 		},
 		pod: p.selected,
 		tail: tail,
+		download: download,
 	}
-	tl.TailLog(req, namespace, p.selected, pageSize, tail)
+	if log {
+		tl.TailLog(req, namespace, p.selected, pageSize, tail)
+	}
+	if download {
+		tl.DownloadLog(downloadPath)
+	}
 	return
 }

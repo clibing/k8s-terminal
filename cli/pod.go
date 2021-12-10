@@ -42,12 +42,24 @@ func podCommand(req *kubernetes.Request) *cli.Command {
 				Aliases: []string{"l"},
 				Usage:   "查看日志的位置，支持正负数",
 			},
+			&cli.BoolFlag{
+				Name:    "download-log",
+				Aliases: []string{"d"},
+				Usage:   "下载文件到当前工作目录下~/Download/，日志的文件名字使用ContainerName",
+			},
+			&cli.StringFlag{
+				Name:    "download-path",
+				Aliases: []string{"dp"},
+				Usage:   "保存日志的目录",
+			},
 		},
 		Action: func(c *cli.Context) error {
 			ns := ""
 			name := ""
 			enable := false
 			tail := 0
+			download := false
+			downloadPath := ""
 			for _, v := range c.FlagNames() {
 				if v == "pod-namespace" {
 					ns = c.String("pod-namespace")
@@ -84,8 +96,29 @@ func podCommand(req *kubernetes.Request) *cli.Command {
 					tail = c.Int("l")
 					continue
 				}
+
+				if v == "download-log" {
+					download = c.Bool("download-log")
+					continue
+				}
+
+				if v == "d" {
+					download = c.Bool("d")
+					continue
+				}
+
+
+				if v == "download-path" {
+					downloadPath = c.String("download-path")
+					continue
+				}
+
+				if v == "dp" {
+					downloadPath = c.String("dp")
+					continue
+				}
 			}
-			kubernetes.ShowPod(req, ns, name, enable, config.GlobalCfg.Log.PageSize, tail)
+			kubernetes.ShowPod(req, ns, name, enable, config.GlobalCfg.Log.PageSize, tail, download, downloadPath)
 			return nil
 		},
 	}
