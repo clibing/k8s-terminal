@@ -440,4 +440,5 @@ func (m *LogModel) DownloadLog(path string) {
 	fileName := m.pod + "-" + m.containerName + ".log"
 	value := filepath.Join(path, fileName)
 	ioutil.WriteFile(value, []byte(data), 0755)
+	fmt.Println("日志保存成功！", value)
 }
