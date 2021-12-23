@@ -66,6 +66,8 @@ k8s-terminal pod --ns <namespace> -n <pod name> -e
 
 ##### 2.5 更多
 
+查看 secret 中的内容
+
 更多的使用细节查看帮助文档
 
 ````shell script

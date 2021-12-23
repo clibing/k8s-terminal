@@ -20,11 +20,10 @@ var (
 	deployment = Commands{Command: "deployment", Abbreviations: "d",}
 	service    = Commands{Command: "service", Abbreviations: "s",}
 	pod        = Commands{Command: "pod", Abbreviations: "p",}
+	secret = Commands{Command: "secret", Abbreviations: "",}
 
 	// todo
 	configMap = Commands{Command: "configMap", Abbreviations: "",}
-	// todo
-	secret = Commands{Command: "secret", Abbreviations: "",}
 
 	watchLog     = Commands{Command: "log", Abbreviations: "",}
 	tail         = Commands{Command: "tail", Abbreviations: "",}
@@ -48,6 +47,7 @@ func init() {
 }
 
 func RefreshTokenAsync(req *kubernetes.Request) {
+	defer refreshToken.Stop()
 	_ = <-start
 	for {
 		_ = <-refreshToken.C
@@ -82,6 +82,7 @@ func CliApp(version, buildDate, commitID string) {
 			podCommand(req),
 			installCommand(),
 			initEnvCommand(),
+			secretCommand(req),
 		},
 		Action: func(c *cli.Context) error {
 			return cli.ShowAppHelp(c)
@@ -92,5 +93,4 @@ func CliApp(version, buildDate, commitID string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }

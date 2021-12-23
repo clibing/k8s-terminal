@@ -314,3 +314,24 @@ type Namespace struct {
 	TypeMeta TypeMeta `json:"typeMeta"`
 	Phase string `json:"phase"`
 }
+
+// = secret =================================
+type SecretListResponse struct {
+	ListMeta ListMeta `json:"listMeta"`
+	Secret []Secret `json:"secrets"`
+	Errors []interface{} `json:"errors"`
+}
+
+type Secret struct {
+	ObjectMeta ObjectMeta `json:"objectMeta"`
+	TypeMeta TypeMeta `json:"typeMeta"`
+	Type string `json:"type"`
+}
+
+type SecretResponse struct {
+	ObjectMeta ObjectMeta `json:"objectMeta"`
+	TypeMeta TypeMeta `json:"typeMeta"`
+	Data map[string]string `json:"data"`
+	Type string `json:"type"`
+}
+

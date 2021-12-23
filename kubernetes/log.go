@@ -423,6 +423,7 @@ func (m *LogModel) DownloadLog(path string) {
 	pod := m.Log(m.namespace, m.pod, m.offsetFrom, m.offsetTo, m.pageSize, true)
 	m.containerName = pod.Info.ContainerName
 
+	fmt.Println("download....")
 	url := fmt.Sprintf("https://%s:%d/api/v1/log/file/%s/%s/%s?previous=false", m.req.Ip, m.req.Port, m.namespace, m.pod, m.containerName)
 	data, err := commonRequest(url, false, nil, false, true, nil)
 	if err != nil {
