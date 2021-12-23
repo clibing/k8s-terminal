@@ -13,7 +13,7 @@ func secretCommand(req *kubernetes.Request) *cli.Command {
 		UsageText: `
    使用方法：
       空间名字: <namespace> 空间
-      部署名字: <secret name> secret 的名字
+      保密字典: <secret name> secret 的名字
 
    简写方式的命令：k8s-terminal secret --ns <namespace> -n <secret name>
    完整方式的命令：k8s-terminal secret --secret-namespace <namespace> --secret-name <pod name>
