@@ -17,8 +17,6 @@ func secretCommand(req *kubernetes.Request) *cli.Command {
 
    简写方式的命令：k8s-terminal secret --ns <namespace> -n <secret name>
    完整方式的命令：k8s-terminal secret --secret-namespace <namespace> --secret-name <pod name>
-
-   简写方式的命令开启日志自动模式：k8s-terminal pod --ns <namespace> -n <pod name> -e
 `,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
