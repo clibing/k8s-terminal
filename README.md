@@ -75,6 +75,76 @@ k8s-terminal -h
 k8s-terminal <command> -h
 ````
 
+#### 常见问题
+
+1. MacOS 安装需要授权
+
+![](doc/install-p.png)
+
+2. 在执行安装命令后，找不到`k8s-terminal`
+
+因为默认安装 `/usr/local/bin`, 当前的shell找到
+需要将`/usr/local/bin`目录导入到当前系统变量中
+
+bash修改`~/.bashrc`， zsh 修改`~/.zshrc`
+
+追加
+
+```shell script
+export PATH=$PATH:/usr/local/bin:.
+```
+
+生效
+```shell script
+source ~/.zshrc 
+
+or
+
+source ~/.bashrc
+```
+
+3. 使用中记不住定义的名字
+
+内置help
+
+```shell script
+k8s-terminal -h
+k8s-terminal n -h
+k8s-terminal d -h
+k8s-terminal p -h
+k8s-terminal init -h
+....
+```
+
+    NAME:
+       k8s-terminal - k8s集群，主要替代kubernetes dashboard token登录，对deployment, pod, service, namespace, configMap的查看
+
+    USAGE:
+       k8s-terminal [global options] command [command options] [arguments...]
+
+    VERSION:
+       v0.0.4/2022-01-14 16:38:10/ece25ecf195f140044aef3449109fcabfec5e7ec https://github.com/clibing/k8s-terminal
+
+    AUTHOR:
+       clibing <wmsjhappy@gmail.com>
+
+    COMMANDS:
+       namespace, n   获取当前kubernetes集群的namespace
+       deployment, d  Deployment相关操作, 选择对应的deployment部署信息和service对应的端口
+       pod, p         POD相关操作, 选择对应的Pod,查看POD的配置，支持实时查看Log
+       install, i     安装
+       init           环境初始化
+       secret,        查看对应的secret详细配置内容
+       help, h        Shows a list of commands or help for one command
+
+    GLOBAL OPTIONS:
+       --help, -h     show help (default: false)
+       --version, -v  print the version (default: false)
+
+    COPYRIGHT:
+       Copyright (c) 2022 clibing, All rights reserved.
+
+
 #### 附录
 
 1. bubbletea

@@ -64,7 +64,7 @@ func CliApp(version, buildDate, commitID string) {
 		Authors:              []*cli.Author{{Name: "clibing", Email: "wmsjhappy@gmail.com"}},
 		EnableBashCompletion: true,
 		Copyright:            "Copyright (c) " + time.Now().Format("2006") + " clibing, All rights reserved.",
-		Version:              fmt.Sprintf("%s / %s / %s", version, buildDate, commitID),
+		Version:              fmt.Sprintf("%s/%s/%s https://github.com/clibing/k8s-terminal", version, buildDate, commitID),
 		Before: func(context *cli.Context) error {
 			if config.CheckInstalled() {
 				req.CsrfToken()
