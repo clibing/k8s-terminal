@@ -23,7 +23,28 @@ type ServiceModel struct {
 	BaseModel
 }
 
-func (m *ServiceModel) ServiceDetail(namespace, name string) (service Service) {
+/**
+* 获取deployment的副本集
+ */
+func (m *ServiceModel) replicaSetDetailGetServiceName(namespace, podName string)(name string){
+	url := fmt.Sprintf("https://%s:%d/api/v1/replicaset/%s/%s?filterBy=&itemsPerPage=50&page=1&sortBy=d,creationTimestamp", m.req.Ip, m.req.Port, namespace, podName)
+
+	data, err := commonRequest(url, false, nil, false, true, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	var response ReplicaSetResponse
+	json.Unmarshal([]byte(data), &response)
+	name = response.ServiceList.Services[0].ObjectMeta.Name;
+	return
+}
+
+
+func (m *ServiceModel) ServiceDetail(namespace, podName string) (service Service) {
+
+	name := m.replicaSetDetailGetServiceName(namespace, podName)
+
 	url := fmt.Sprintf("https://%s:%d/api/v1/service/%s/%s", m.req.Ip, m.req.Port, namespace, name)
 
 	data, err := commonRequest(url, false, nil, false, true, nil)
@@ -48,7 +69,7 @@ func ShowServiceDetails(m *ServiceModel, deployment Deployment) {
 		return
 	} else if size >= 1 {
 		for i := 0; i < size; i++ {
-			sd := m.ServiceDetail(deployment.ObjectMeta.Namespace, deployment.ObjectMeta.Name)
+			sd := m.ServiceDetail(deployment.ObjectMeta.Namespace, deployment.NewReplicaSet.ObjectMeta.Name)
 			endPointLen := len(sd.InternalEndpoint.Ports)
 			for j := 0; j < endPointLen; j++ {
 				column := make([]string, 6)

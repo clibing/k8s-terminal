@@ -264,6 +264,7 @@ type EndpointList struct {
 }
 type Selector struct {
 	App string `json:"app"`
+	MatchLabels MatchLabels `json:"matchLabels"`
 }
 //=service=====================================================================================================================
 
@@ -335,3 +336,28 @@ type SecretResponse struct {
 	Type string `json:"type"`
 }
 
+// = replicaset ===============================
+type ReplicaSetResponse struct {
+	ObjectMeta ObjectMeta `json:"objectMeta"`
+	TypeMeta TypeMeta `json:"typeMeta"`
+	PodInfo PodStatus `json:"podInfo"`
+	PodList PodList `json:"podList"`
+	ServiceList ServiceList `json:"serviceList"`
+	ContainerImages []string `json:"containerImages"`
+	InitContainerImages interface{} `json:"initContainerImages"`
+	EventList EventList `json:"eventList"`
+	Selector Selector `json:"selector"`
+	HorizontalPodAutoscalerList HorizontalPodAutoscalerList `json:"horizontalPodAutoscalerList"`
+	Errors []interface{} `json:"errors"`
+}
+
+type ServiceList struct {
+	ListMeta ListMeta `json:"listMeta"`
+	Services []Service `json:"services"`
+	Errors []interface{} `json:"errors"`
+}
+
+type MatchLabels struct {
+	App string `json:"app"`
+	PodTemplateHash string `json:"pod-template-hash"`
+}

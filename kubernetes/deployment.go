@@ -149,6 +149,7 @@ func (m *DeploymentModel) DeploymentDetail(namespace, name string) (deployment D
 	return
 }
 
+
 func ShowDeployment(namespace, filter string, req *Request) {
 	m := DeploymentModel{
 		BaseModel: BaseModel{
