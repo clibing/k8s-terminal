@@ -31,9 +31,9 @@ make
 
 ```shell script
 k8s-terminal init \ 
-    --ip <k8s dashboard web ip>  \
+    --ip "<k8s dashboard web ip>"  \
     --port <k8s dashboard web port>  \
-    --token <k8s dashboard login with token>
+    --token "<k8s dashboard login with token>"
     --force # 如果别你存在配置文件会进行备份后覆盖修改
 ````
 
