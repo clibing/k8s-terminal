@@ -30,7 +30,7 @@ func podCommand(req *kubernetes.Request) *cli.Command {
 			&cli.StringFlag{
 				Name:    "pod-name",
 				Aliases: []string{"n"},
-				Usage:   "根据Pod的名字进行所说",
+				Usage:   "根据Pod的名字进行过滤",
 			},
 			&cli.BoolFlag{
 				Name:    "enable-log",
