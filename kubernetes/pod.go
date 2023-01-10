@@ -3,8 +3,10 @@ package kubernetes
 import (
 	"encoding/json"
 	"fmt"
-	tea "github.com/charmbracelet/bubbletea"
 	"os"
+	"time"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 type PodApi interface {
@@ -14,9 +16,10 @@ type PodApi interface {
 
 type PodModel struct {
 	BaseModel
-	pods   map[string]Pod
-	enable bool
-	tail   int
+	pods    map[string]Pod
+	enable  bool
+	tail    int
+	restart bool
 }
 
 func (m *PodModel) Init() tea.Cmd {
@@ -98,6 +101,105 @@ func (m *PodModel) PodList(namespace, filter string, pageNumber, pageSize int) (
 	return
 }
 
+type ScaleResult struct {
+	DesiredReplicas int `json:"desiredReplicas"`
+	ActualReplicas  int `json:"actualReplicas"`
+}
+
+// https://dashboard-msvc2.test1.bj.yxops.net/api/v1/scale/deployment/stage-2/payment?scaleBy=2
+func (m *PodModel) scalePod(namespace, name string, scale int) (error, string) {
+	url := fmt.Sprintf("https://%s:%d/api/v1/scale/deployment/%s/%s?scaleBy=%d", m.req.Ip, m.req.Port, namespace, name, scale)
+	data, err := commonRequestV2(url, PUT, nil, true, true, nil)
+	if err != nil {
+		return err, "请求错误"
+	}
+	var scaleResult ScaleResult
+	json.Unmarshal([]byte(data), &scaleResult)
+	fmt.Printf("已经调整Pod共: %d, 待调整的pod: %d\n", scaleResult.DesiredReplicas, scaleResult.ActualReplicas)
+	wait(1, time.Second*1, "执行已经发送.")
+	return nil, ""
+}
+
+func wait(times int, timeout time.Duration, message string) {
+	for i := 0; i < times; i++ {
+		time.Sleep(timeout)
+		fmt.Println(message)
+	}
+}
+
+func (m *PodModel) RestartPod(name string) {
+	// fetch current pod size
+	podInfo := m.pods[name]
+	size := podInfo.PodStatus.Desired
+	running := podInfo.PodStatus.Running
+	fmt.Printf("当前Pod共: %d, 正在运行的pod: %d\n", size, running)
+
+	// scale to zero
+	m.scalePod(m.namespace, name, 0)
+	time.Sleep(1 * time.Second)
+	fmt.Println("等待系统1秒.")
+	time.Sleep(1 * time.Second)
+	fmt.Println("等待系统2秒..")
+	time.Sleep(1 * time.Second)
+	fmt.Println("等待系统3秒...")
+
+	m.scalePod(m.namespace, name, size)
+	time.Sleep(1 * time.Second)
+	fmt.Println("等待系统3秒...")
+}
+
+// 重启pod
+func ScalePod(req *Request, namespace, filter string, scale int) (err error) {
+	p := PodModel{
+		BaseModel: BaseModel{
+			namespace: namespace,
+			filter:    filter,
+			req:       req,
+		},
+	}
+
+	cmd := tea.NewProgram(&p)
+	if err := cmd.Start(); err != nil {
+		fmt.Println("start failed:", err)
+		os.Exit(1)
+	}
+	if p.selected == "" {
+		fmt.Println("没有选择Pod，本次结束")
+		return
+	}
+	// 不是重启，进行pod副本scale
+	pod := p.pods[p.selected]
+	name := pod.ObjectMeta.Labels.App
+	fmt.Println("当前POD的label.app name:  ", name)
+	p.scalePod(namespace, name, scale)
+
+	return
+}
+
+// 重启pod
+func RestartPod(req *Request, namespace, filter string) (err error) {
+	p := PodModel{
+		BaseModel: BaseModel{
+			namespace: namespace,
+			filter:    filter,
+			req:       req,
+		},
+	}
+
+	cmd := tea.NewProgram(&p)
+	if err := cmd.Start(); err != nil {
+		fmt.Println("start failed:", err)
+		os.Exit(1)
+	}
+	if p.selected == "" {
+		fmt.Println("没有选择Pod，本次结束")
+		return
+	}
+	// scale Desired to zero, and zero to Desired
+	p.RestartPod(p.selected)
+	return
+}
+
 func ShowPod(req *Request, namespace, filter string, log bool, pageSize, tail int, download bool, downloadPath string) (err error) {
 	p := PodModel{
 		BaseModel: BaseModel{
@@ -130,8 +232,8 @@ func ShowPod(req *Request, namespace, filter string, log bool, pageSize, tail in
 			namespace: namespace,
 			req:       req,
 		},
-		pod: p.selected,
-		tail: tail,
+		pod:      p.selected,
+		tail:     tail,
 		download: download,
 	}
 	if log {

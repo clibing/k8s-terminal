@@ -31,6 +31,7 @@ var (
 	req          *kubernetes.Request
 	refreshToken *time.Ticker = time.NewTicker(time.Second * 15)
 	start = make(chan bool, 1)
+
 )
 
 func init() {

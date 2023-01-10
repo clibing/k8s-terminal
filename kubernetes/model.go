@@ -109,9 +109,9 @@ type TypeMeta struct {
  */
 type PodStatus struct {
 	// deployment 列表使用
-	Current   int           `json:"current"`
-	Desired   int           `json:"desired"`
-	Running   int           `json:"running"`
+	Current   int           `json:"current"` // 当前运行pod数量
+	Desired   int           `json:"desired"` // pod 最终的数量
+	Running   int           `json:"running"` // 当前运行中的
 	Pending   int           `json:"pending"`
 	Failed    int           `json:"failed"`
 	Succeeded int           `json:"succeeded"`

@@ -20,6 +20,9 @@ func podCommand(req *kubernetes.Request) *cli.Command {
    完整方式的命令：k8s-terminal pod --pod-namespace <namespace> --pod-name <pod name>
 
    简写方式的命令开启日志自动模式：k8s-terminal pod --ns <namespace> -n <pod name> -e
+
+   重启pod： k8s-terminal pod --namespace <namespace> -n <pod name> --restart
+   缩减pod副本数为2个： k8s-terminal pod --namespace <namespace> -n <pod name> --scale --desired 2
 `,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
@@ -52,7 +55,20 @@ func podCommand(req *kubernetes.Request) *cli.Command {
 				Aliases: []string{"dp"},
 				Usage:   "保存日志的目录",
 			},
+			&cli.BoolFlag{
+				Name:  "restart",
+				Usage: "重启pod(与scale互斥)",
+			},
+			&cli.BoolFlag{
+				Name:  "scale",
+				Usage: "是否缩减POD的副本(与restart互斥)",
+			},
+			&cli.IntFlag{
+				Name:  "desired",
+				Usage: "Pod的副本数",
+			},
 		},
+
 		Action: func(c *cli.Context) error {
 			ns := ""
 			name := ""
@@ -60,6 +76,9 @@ func podCommand(req *kubernetes.Request) *cli.Command {
 			tail := 0
 			download := false
 			downloadPath := ""
+			restartPod := false
+			scale := false
+			desired := 0
 			for _, v := range c.FlagNames() {
 				if v == "pod-namespace" {
 					ns = c.String("pod-namespace")
@@ -107,7 +126,6 @@ func podCommand(req *kubernetes.Request) *cli.Command {
 					continue
 				}
 
-
 				if v == "download-path" {
 					downloadPath = c.String("download-path")
 					continue
@@ -117,6 +135,30 @@ func podCommand(req *kubernetes.Request) *cli.Command {
 					downloadPath = c.String("dp")
 					continue
 				}
+
+				if v == "restart" {
+					restartPod = c.Bool("restart")
+					continue
+				}
+
+				if v == "scale" {
+					scale = c.Bool("scale")
+					continue
+				}
+
+				if v == "desired" {
+					desired = c.Int("desired")
+					continue
+				}
+
+			}
+			if restartPod && !scale {
+				kubernetes.RestartPod(req, ns, name)
+				return nil
+			}
+			if scale && !restartPod {
+				kubernetes.ScalePod(req, ns, name, desired)
+				return nil
 			}
 			kubernetes.ShowPod(req, ns, name, enable, config.GlobalCfg.Log.PageSize, tail, download, downloadPath)
 			return nil
