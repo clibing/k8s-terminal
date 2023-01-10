@@ -4,12 +4,11 @@ import (
 	"time"
 )
 
-//======================================================================================================================
+// ======================================================================================================================
 type Request struct {
 	Ip    string
 	Port  int
 	Token string
-
 }
 
 /**
@@ -35,8 +34,9 @@ type JweToken struct {
 }
 
 type RJweToken struct {
-	JweToken string  `json:"jweToken"`
+	JweToken string `json:"jweToken"`
 }
+
 /**
  * jwe token 下的各个属性
  */
@@ -165,12 +165,12 @@ type Deployment struct {
 	Errors                      []interface{}               `json:"errors"`
 }
 
-//======================================================================================================================
+// ======================================================================================================================
 type PodList struct {
 	ListMeta          ListMeta      `json:"listMeta"`
 	CumulativeMetrics []interface{} `json:"cumulativeMetrics"`
 	Status            Status        `json:"status"`
-	Pods              []Pod        `json:"pods"`
+	Pods              []Pod         `json:"pods"`
 	Errors            []interface{} `json:"errors"`
 }
 
@@ -195,7 +195,7 @@ type OldReplicaSetList struct {
 type NewReplicaSet struct {
 	ObjectMeta          ObjectMeta  `json:"objectMeta"`
 	TypeMeta            TypeMeta    `json:"typeMeta"`
-	Pods                Pod        `json:"pods"`
+	Pods                Pod         `json:"pods"`
 	ContainerImages     []string    `json:"containerImages"`
 	InitContainerImages interface{} `json:"initContainerImages"`
 }
@@ -222,142 +222,151 @@ type HorizontalPodAutoscalerList struct {
 	Horizontalpodautoscalers []interface{} `json:"horizontalpodautoscalers"`
 	Errors                   []interface{} `json:"errors"`
 }
+
 //=service=====================================================================================================================
 
 type Service struct {
-	ObjectMeta ObjectMeta `json:"objectMeta"`
-	TypeMeta TypeMeta `json:"typeMeta"`
-	InternalEndpoint InternalEndpoint `json:"internalEndpoint"`
-	ExternalEndpoints interface{} `json:"externalEndpoints"`
-	EndpointList EndpointList `json:"endpointList"`
-	Selector Selector `json:"selector"`
-	Type string `json:"type"`
-	ClusterIP string `json:"clusterIP"`
-	EventList EventList `json:"eventList"`
-	PodList PodList `json:"podList"`
-	SessionAffinity string `json:"sessionAffinity"`
-	Errors []interface{} `json:"errors"`
+	ObjectMeta        ObjectMeta       `json:"objectMeta"`
+	TypeMeta          TypeMeta         `json:"typeMeta"`
+	InternalEndpoint  InternalEndpoint `json:"internalEndpoint"`
+	ExternalEndpoints interface{}      `json:"externalEndpoints"`
+	EndpointList      EndpointList     `json:"endpointList"`
+	Selector          Selector         `json:"selector"`
+	Type              string           `json:"type"`
+	ClusterIP         string           `json:"clusterIP"`
+	EventList         EventList        `json:"eventList"`
+	PodList           PodList          `json:"podList"`
+	SessionAffinity   string           `json:"sessionAffinity"`
+	Errors            []interface{}    `json:"errors"`
 }
 
 type Ports struct {
-	Name string `json:"name"`
-	Port int `json:"port"`
+	Name     string `json:"name"`
+	Port     int    `json:"port"`
 	Protocol string `json:"protocol"`
-	NodePort int `json:"nodePort"`
+	NodePort int    `json:"nodePort"`
 }
 type InternalEndpoint struct {
-	Host string `json:"host"`
+	Host  string  `json:"host"`
 	Ports []Ports `json:"ports"`
 }
 
 type Endpoints struct {
 	ObjectMeta ObjectMeta `json:"objectMeta"`
-	TypeMeta TypeMeta `json:"typeMeta"`
-	Host string `json:"host"`
-	NodeName string `json:"nodeName"`
-	Ready bool `json:"ready"`
-	Ports []Ports `json:"ports"`
+	TypeMeta   TypeMeta   `json:"typeMeta"`
+	Host       string     `json:"host"`
+	NodeName   string     `json:"nodeName"`
+	Ready      bool       `json:"ready"`
+	Ports      []Ports    `json:"ports"`
 }
 type EndpointList struct {
-	ListMeta ListMeta `json:"listMeta"`
+	ListMeta  ListMeta    `json:"listMeta"`
 	Endpoints []Endpoints `json:"endpoints"`
 }
 type Selector struct {
-	App string `json:"app"`
+	App         string      `json:"app"`
 	MatchLabels MatchLabels `json:"matchLabels"`
 }
+
 //=service=====================================================================================================================
 
 type PodListResponse struct {
-	ListMeta ListMeta `json:"listMeta"`
+	ListMeta          ListMeta      `json:"listMeta"`
 	CumulativeMetrics []interface{} `json:"cumulativeMetrics"`
-	Status Status `json:"status"`
-	Pods []Pod `json:"pods"`
-	Errors []interface{} `json:"errors"`
+	Status            Status        `json:"status"`
+	Pods              []Pod         `json:"pods"`
+	Errors            []interface{} `json:"errors"`
 }
-//=pod=====================================================================================================================
+
+// =pod=====================================================================================================================
 type LogResponse struct {
-	Info Info           `json:"info"`
+	Info      Info      `json:"info"`
 	Selection Selection `json:"selection"`
-	Logs []Log          `json:"logs"`
+	Logs      []Log     `json:"logs"`
 }
 type Info struct {
-	PodName string `json:"podName"`
-	ContainerName string `json:"containerName"`
-	InitContainerName string `json:"initContainerName"`
-	FromDate time.Time `json:"fromDate"`
-	ToDate time.Time `json:"toDate"`
-	Truncated bool `json:"truncated"`
+	PodName           string    `json:"podName"`
+	ContainerName     string    `json:"containerName"`
+	InitContainerName string    `json:"initContainerName"`
+	FromDate          time.Time `json:"fromDate"`
+	ToDate            time.Time `json:"toDate"`
+	Truncated         bool      `json:"truncated"`
 }
 type ReferencePoint struct {
 	Timestamp time.Time `json:"timestamp"`
-	LineNum int `json:"lineNum"`
+	LineNum   int       `json:"lineNum"`
 }
 type Selection struct {
-	ReferencePoint ReferencePoint `json:"referencePoint"`
-	OffsetFrom int `json:"offsetFrom"`
-	OffsetTo int `json:"offsetTo"`
-	LogFilePosition string `json:"logFilePosition"`
+	ReferencePoint  ReferencePoint `json:"referencePoint"`
+	OffsetFrom      int            `json:"offsetFrom"`
+	OffsetTo        int            `json:"offsetTo"`
+	LogFilePosition string         `json:"logFilePosition"`
 }
 type Log struct {
 	Timestamp time.Time `json:"timestamp"`
-	Content string `json:"content"`
+	Content   string    `json:"content"`
 }
-//=pod=====================================================================================================================
+
+// =pod=====================================================================================================================
 type NamespaceResponse struct {
-	ListMeta ListMeta `json:"listMeta"`
-	Namespaces []Namespace `json:"namespaces"`
-	Errors []interface{} `json:"errors"`
+	ListMeta   ListMeta      `json:"listMeta"`
+	Namespaces []Namespace   `json:"namespaces"`
+	Errors     []interface{} `json:"errors"`
 }
 
 type Namespace struct {
 	ObjectMeta ObjectMeta `json:"objectMeta,omitempty"`
-	TypeMeta TypeMeta `json:"typeMeta"`
-	Phase string `json:"phase"`
+	TypeMeta   TypeMeta   `json:"typeMeta"`
+	Phase      string     `json:"phase"`
 }
 
 // = secret =================================
 type SecretListResponse struct {
-	ListMeta ListMeta `json:"listMeta"`
-	Secret []Secret `json:"secrets"`
-	Errors []interface{} `json:"errors"`
+	ListMeta ListMeta      `json:"listMeta"`
+	Secret   []Secret      `json:"secrets"`
+	Errors   []interface{} `json:"errors"`
 }
 
 type Secret struct {
 	ObjectMeta ObjectMeta `json:"objectMeta"`
-	TypeMeta TypeMeta `json:"typeMeta"`
-	Type string `json:"type"`
+	TypeMeta   TypeMeta   `json:"typeMeta"`
+	Type       string     `json:"type"`
 }
 
 type SecretResponse struct {
-	ObjectMeta ObjectMeta `json:"objectMeta"`
-	TypeMeta TypeMeta `json:"typeMeta"`
-	Data map[string]string `json:"data"`
-	Type string `json:"type"`
+	ObjectMeta ObjectMeta        `json:"objectMeta"`
+	TypeMeta   TypeMeta          `json:"typeMeta"`
+	Data       map[string]string `json:"data"`
+	Type       string            `json:"type"`
 }
 
 // = replicaset ===============================
 type ReplicaSetResponse struct {
-	ObjectMeta ObjectMeta `json:"objectMeta"`
-	TypeMeta TypeMeta `json:"typeMeta"`
-	PodInfo PodStatus `json:"podInfo"`
-	PodList PodList `json:"podList"`
-	ServiceList ServiceList `json:"serviceList"`
-	ContainerImages []string `json:"containerImages"`
-	InitContainerImages interface{} `json:"initContainerImages"`
-	EventList EventList `json:"eventList"`
-	Selector Selector `json:"selector"`
+	ObjectMeta                  ObjectMeta                  `json:"objectMeta"`
+	TypeMeta                    TypeMeta                    `json:"typeMeta"`
+	PodInfo                     PodStatus                   `json:"podInfo"`
+	PodList                     PodList                     `json:"podList"`
+	ServiceList                 ServiceList                 `json:"serviceList"`
+	ContainerImages             []string                    `json:"containerImages"`
+	InitContainerImages         interface{}                 `json:"initContainerImages"`
+	EventList                   EventList                   `json:"eventList"`
+	Selector                    Selector                    `json:"selector"`
 	HorizontalPodAutoscalerList HorizontalPodAutoscalerList `json:"horizontalPodAutoscalerList"`
-	Errors []interface{} `json:"errors"`
+	Errors                      []interface{}               `json:"errors"`
 }
 
 type ServiceList struct {
-	ListMeta ListMeta `json:"listMeta"`
-	Services []Service `json:"services"`
-	Errors []interface{} `json:"errors"`
+	ListMeta ListMeta      `json:"listMeta"`
+	Services []Service     `json:"services"`
+	Errors   []interface{} `json:"errors"`
 }
 
 type MatchLabels struct {
-	App string `json:"app"`
+	App             string `json:"app"`
 	PodTemplateHash string `json:"pod-template-hash"`
+}
+
+type ScaleResult struct {
+	DesiredReplicas int `json:"desiredReplicas"`
+	ActualReplicas  int `json:"actualReplicas"`
 }

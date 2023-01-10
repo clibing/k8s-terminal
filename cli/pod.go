@@ -6,6 +6,12 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+var (
+	textPodEnableLog = "enableLog"
+	textTail         = "tail"
+	textDownload     = "download"
+)
+
 func podCommand(req *kubernetes.Request) *cli.Command {
 	return &cli.Command{
 		Name:    pod.Command,
@@ -20,77 +26,48 @@ func podCommand(req *kubernetes.Request) *cli.Command {
    完整方式的命令：k8s-terminal pod --pod-namespace <namespace> --pod-name <pod name>
 
    简写方式的命令开启日志自动模式：k8s-terminal pod --ns <namespace> -n <pod name> -e
-
-   重启pod： k8s-terminal pod --namespace <namespace> -n <pod name> --restart
-   缩减pod副本数为2个： k8s-terminal pod --namespace <namespace> -n <pod name> --scale --desired 2
 `,
 		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "pod-namespace",
-				Aliases: []string{"ns"},
-				Usage:   "Pod当前所在的namespace",
-			},
-			&cli.StringFlag{
-				Name:    "pod-name",
-				Aliases: []string{"n"},
-				Usage:   "根据Pod的名字进行过滤",
-			},
+			commonNamespaceFlag,
+			commonNameFlag,
+			commonPathFlag,
 			&cli.BoolFlag{
-				Name:    "enable-log",
+				Name:    textPodEnableLog,
 				Aliases: []string{"e"},
 				Usage:   "查看Pod日志",
 			},
 			&cli.IntFlag{
-				Name:    "tail-line",
+				Name:    textTail,
 				Aliases: []string{"l"},
 				Usage:   "查看日志的位置，支持正负数",
 			},
 			&cli.BoolFlag{
-				Name:    "download-log",
+				Name:    "download",
 				Aliases: []string{"d"},
 				Usage:   "下载文件到当前工作目录下~/Download/，日志的文件名字使用ContainerName",
-			},
-			&cli.StringFlag{
-				Name:    "download-path",
-				Aliases: []string{"dp"},
-				Usage:   "保存日志的目录",
-			},
-			&cli.BoolFlag{
-				Name:  "restart",
-				Usage: "重启pod(与scale互斥)",
-			},
-			&cli.BoolFlag{
-				Name:  "scale",
-				Usage: "是否缩减POD的副本(与restart互斥)",
-			},
-			&cli.IntFlag{
-				Name:  "desired",
-				Usage: "Pod的副本数",
 			},
 		},
 
 		Action: func(c *cli.Context) error {
-			ns := ""
+			namespace := ""
 			name := ""
 			enable := false
 			tail := 0
 			download := false
 			downloadPath := ""
-			restartPod := false
-			scale := false
-			desired := 0
+
 			for _, v := range c.FlagNames() {
-				if v == "pod-namespace" {
-					ns = c.String("pod-namespace")
+				if v == COMMON_NAMESPACE_NAME {
+					namespace = c.String(COMMON_NAMESPACE_NAME)
 					continue
 				}
 				if v == "ns" {
-					ns = c.String("ns")
+					namespace = c.String("ns")
 					continue
 				}
 
-				if v == "pod-name" {
-					name = c.String("pod-name")
+				if v == COMMON_NAME_NAME {
+					name = c.String(COMMON_NAME_NAME)
 					continue
 				}
 				if v == "n" {
@@ -98,8 +75,8 @@ func podCommand(req *kubernetes.Request) *cli.Command {
 					continue
 				}
 
-				if v == "enable-log" {
-					enable = c.Bool("enable-log")
+				if v == textPodEnableLog {
+					enable = c.Bool(textPodEnableLog)
 					continue
 				}
 				if v == "e" {
@@ -107,8 +84,8 @@ func podCommand(req *kubernetes.Request) *cli.Command {
 					continue
 				}
 
-				if v == "tail-line" {
-					tail = c.Int("tail-line")
+				if v == textTail{
+					tail = c.Int(textTail)
 					continue
 				}
 				if v == "l" {
@@ -116,8 +93,8 @@ func podCommand(req *kubernetes.Request) *cli.Command {
 					continue
 				}
 
-				if v == "download-log" {
-					download = c.Bool("download-log")
+				if v == textDownload{
+					download = c.Bool(textDownload)
 					continue
 				}
 
@@ -126,41 +103,17 @@ func podCommand(req *kubernetes.Request) *cli.Command {
 					continue
 				}
 
-				if v == "download-path" {
-					downloadPath = c.String("download-path")
+				if v == COMMON_PATH_NAME {
+					downloadPath = c.String(COMMON_PATH_NAME)
 					continue
 				}
 
-				if v == "dp" {
-					downloadPath = c.String("dp")
+				if v == "p" {
+					downloadPath = c.String("p")
 					continue
 				}
-
-				if v == "restart" {
-					restartPod = c.Bool("restart")
-					continue
-				}
-
-				if v == "scale" {
-					scale = c.Bool("scale")
-					continue
-				}
-
-				if v == "desired" {
-					desired = c.Int("desired")
-					continue
-				}
-
 			}
-			if restartPod && !scale {
-				kubernetes.RestartPod(req, ns, name)
-				return nil
-			}
-			if scale && !restartPod {
-				kubernetes.ScalePod(req, ns, name, desired)
-				return nil
-			}
-			kubernetes.ShowPod(req, ns, name, enable, config.GlobalCfg.Log.PageSize, tail, download, downloadPath)
+			kubernetes.ShowPod(req, namespace, name, enable, config.GlobalCfg.Log.PageSize, tail, download, downloadPath)
 			return nil
 		},
 	}

@@ -5,6 +5,12 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+var (
+	textRestart = "restart"
+	textDesired = "desired"
+	textScale   = "scale"
+)
+
 func deploymentCommand(req *kubernetes.Request) *cli.Command {
 	return &cli.Command{
 		Name:    deployment.Command,
@@ -17,22 +23,32 @@ func deploymentCommand(req *kubernetes.Request) *cli.Command {
 
    简写方式的命令：k8s-terminal deployment --ns <namespace> -n <deployment name>
    完整方式的命令：k8s-terminal deployment --deployment-namespace <namespace> --deployment-name <deployment name>
+
+   重启： k8s-terminal deployment --namespace <namespace> -n <pod name> --restart
+   缩减副本数为2个： k8s-terminal deployment --namespace <namespace> -n <pod name> --scale --desired 2
 `,
 		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "deployment-namespace",
-				Aliases: []string{"ns"},
-				Usage:   "deployment当前所在的namespace",
+			commonNamespaceFlag,
+			commonNameFlag,
+			&cli.BoolFlag{
+				Name:  textRestart,
+				Usage: "重启pod(与scale互斥)",
 			},
-			&cli.StringFlag{
-				Name:    "deployment-name",
-				Aliases: []string{"n"},
-				Usage:   "根据deployment的名字进行所说",
+			&cli.BoolFlag{
+				Name:  textScale,
+				Usage: "是否缩减POD的副本(与restart互斥)",
+			},
+			&cli.IntFlag{
+				Name:  textDesired,
+				Value: 1,
+				Usage: "Pod的副本数, 默认1",
 			},
 		},
 		Action: func(c *cli.Context) error {
-
-			ns := c.String("deployment-namespace")
+			restart := c.Bool(textRestart)
+			scale := c.Bool(textScale)
+			desired := c.Int(textDesired)
+			ns := c.String(COMMON_NAMESPACE_NAME)
 			if ns == "" {
 				ns = c.String("ns")
 			}
@@ -40,10 +56,20 @@ func deploymentCommand(req *kubernetes.Request) *cli.Command {
 				panic("请输入指定的namespace")
 			}
 
-			name := c.String("deployment-name")
+			name := c.String(COMMON_NAME_NAME)
 			if name == "" {
 				name = c.String("n")
 			}
+
+			if restart && !scale {
+				kubernetes.RestartPod(req, ns, name)
+				return nil
+			}
+			if scale && !restart {
+				kubernetes.ScalePod(req, ns, name, desired)
+				return nil
+			}
+
 			kubernetes.ShowDeployment(ns, name, req)
 			return nil
 		},
