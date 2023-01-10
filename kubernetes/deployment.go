@@ -3,10 +3,13 @@ package kubernetes
 import (
 	"encoding/json"
 	"fmt"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/olekukonko/tablewriter"
 	"os"
 	"strconv"
+	"time"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/k8s-terminal/util"
+	"github.com/olekukonko/tablewriter"
 )
 
 type DeploymentApi interface {
@@ -149,7 +152,6 @@ func (m *DeploymentModel) DeploymentDetail(namespace, name string) (deployment D
 	return
 }
 
-
 func ShowDeployment(namespace, filter string, req *Request) {
 	m := DeploymentModel{
 		BaseModel: BaseModel{
@@ -181,7 +183,8 @@ func ShowDeployment(namespace, filter string, req *Request) {
 	ShowServiceDetails(&s, d)
 }
 
-/**
+/*
+*
 deployment
 deployment-name	deployment create timestamp	image	status	pod	pod create timestamp
 discovery-audio-live	2021-11-05T08:20:01Z	ccr.ccs.tencentyun.com/en-testing/discovery-audio-live-service:cba9eaa-5829-4a12-97a6-581370e9174c	running(1)/pending(0)/failed(0)/succeened(0)	discovery-audio-live-7b8b6779bf-xqt59	2021-11-25T09:05:14Z
@@ -219,4 +222,69 @@ func showDeploymentDetailWithTable(deployment Deployment) {
 	table.SetRowLine(true)
 	table.AppendBulk(data)
 	table.Render()
+}
+
+// 重启pod
+func RestartPod(req *Request, namespace, filter string) (err error) {
+	p := DeploymentModel{
+		BaseModel: BaseModel{
+			namespace: namespace,
+			filter:    filter,
+			req:       req,
+		},
+	}
+
+	cmd := tea.NewProgram(&p)
+	if err := cmd.Start(); err != nil {
+		fmt.Println("start failed:", err)
+		os.Exit(1)
+	}
+	if p.selected == "" {
+		fmt.Println("没有选择Pod，本次结束")
+		return
+	}
+	// scale Desired to zero, and zero to Desired
+	d := p.deployment[p.selected]
+	p.RestartPod(namespace, d.ObjectMeta.Labels.App, d.PodStatus.Desired, d.PodStatus.Current)
+	return
+}
+
+func (m *DeploymentModel) RestartPod(namespace, name string, desited, running int) {
+	// fetch current pod size
+	fmt.Printf("当前Pod共: %d, 正在运行的pod: %d\n", desited, running)
+	// 缩减 pod 的副本数为 0
+	m.scalePod(m.namespace, name, 0)
+	util.WaitAndShowMessagef(3, time.Second*1, "缩小Pod副本数,等待系统%d秒.")
+	// 还原pod 的副本数
+	m.scalePod(m.namespace, name, desited)
+	util.WaitAndShowMessagef(3, time.Second*1, "扩容Pod副本数,等待系统%d秒.")
+}
+
+// 重启pod
+func ScalePod(req *Request, namespace, name string, scale int) (err error) {
+	p := DeploymentModel{
+		BaseModel: BaseModel{
+			namespace: namespace,
+			filter:    name,
+			req:       req,
+		},
+	}
+
+	// 不是重启，进行pod副本scale
+	fmt.Println("当前POD的name:  ", name)
+	p.scalePod(namespace, name, scale)
+	return
+}
+
+// https://domain.../api/v1/scale/deployment/stage-2/payment?scaleBy=2
+func (m *DeploymentModel) scalePod(namespace, name string, scale int) (error, string) {
+	url := fmt.Sprintf("https://%s:%d/api/v1/scale/deployment/%s/%s?scaleBy=%d", m.req.Ip, m.req.Port, namespace, name, scale)
+	data, err := commonRequestV2(url, PUT, nil, true, true, nil)
+	if err != nil {
+		return err, "请求错误"
+	}
+	var scaleResult ScaleResult
+	json.Unmarshal([]byte(data), &scaleResult)
+	fmt.Printf("Pod的最终副本数: %d, 当前已经存在pod副本数: %d\n", scaleResult.DesiredReplicas, scaleResult.ActualReplicas)
+	return nil, ""
 }

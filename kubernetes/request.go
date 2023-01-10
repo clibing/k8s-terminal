@@ -5,26 +5,31 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/k8s-terminal/config"
 	"io/ioutil"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/k8s-terminal/config"
 )
 
 const (
 	defaultPageNumber int = 1
 	defaultPageSize   int = 100
+
+	POST = 10
+	GET  = 11
+	PUT  = 12
 )
 
 /**
  * 对外暴露的请求入口
  */
 var (
-	Client         *http.Client
-	CsrfTokenModel = CsrfToken{}
-	JweTokenModel  = JweToken{}
-	refreshTokenLock      *sync.RWMutex = new(sync.RWMutex)
+	Client           *http.Client
+	CsrfTokenModel                 = CsrfToken{}
+	JweTokenModel                  = JweToken{}
+	refreshTokenLock *sync.RWMutex = new(sync.RWMutex)
 )
 
 type BaseModel struct {
@@ -51,7 +56,7 @@ func init() {
 	Client = &http.Client{Timeout: 15 * time.Second, Transport: tr}
 }
 
-func GetCsrtToken() (value string){
+func GetCsrtToken() (value string) {
 	refreshTokenLock.RLock()
 	value = CsrfTokenModel.Value
 	refreshTokenLock.RUnlock()
@@ -65,23 +70,23 @@ func GetJweToken() (value string) {
 	return
 }
 
-func SetCsrtToken(token string) (){
+func SetCsrtToken(token string) {
 	refreshTokenLock.Lock()
 	CsrfTokenModel.Value = token
 	refreshTokenLock.Unlock()
 }
 
-func SetJweToken(jwe string) (){
+func SetJweToken(jwe string) {
 	refreshTokenLock.Lock()
 	JweTokenModel.JweToken = jwe
 	refreshTokenLock.Unlock()
 }
 
-func addHeader(request *http.Request, post bool, ext map[string]string) {
+func addHeader(request *http.Request, setContentTypeJson bool, ext map[string]string) {
 	request.Header.Add("sec-fetch-site", "same-origin")
 	request.Header.Add("sec-fetch-mode", "cors")
 	request.Header.Add("sec-fetch-dest", "empty")
-	if post {
+	if setContentTypeJson {
 		request.Header.Add("content-type", "application/json;charset=UTF-8")
 	}
 	if ext != nil {
@@ -104,17 +109,26 @@ func withJweTokenRequest(url string, post bool, parameter interface{}, ext map[s
 }
 
 func commonRequest(url string, post bool, parameter interface{}, appendCsrfToken bool, appendJweToken bool, ext map[string]string) (data string, err error) {
-	data, err, _ = baseCommonRequest(url, post, parameter, appendCsrfToken, appendJweToken, ext)
+	method := GET
+	if post {
+		method = POST
+	}
+	data, err, _ = baseCommonRequest(url, method, parameter, appendCsrfToken, appendJweToken, ext)
+	return
+}
+
+func commonRequestV2(url string, method int, parameter interface{}, appendCsrfToken bool, appendJweToken bool, ext map[string]string) (data string, err error) {
+	data, err, _ = baseCommonRequest(url, method, parameter, appendCsrfToken, appendJweToken, ext)
 	return
 }
 
 /**
  * 发送请求
  */
-func baseCommonRequest(url string, post bool, parameter interface{}, appendCsrfToken bool, appendJweToken bool, ext map[string]string) (data string, err error, code int) {
+func baseCommonRequest(url string, method int, parameter interface{}, appendCsrfToken bool, appendJweToken bool, ext map[string]string) (data string, err error, code int) {
 
 	var req *http.Request
-	if post {
+	if method == POST || method == PUT {
 		var result []byte
 		result, err = json.Marshal(parameter)
 		if err != nil {
@@ -122,7 +136,11 @@ func baseCommonRequest(url string, post bool, parameter interface{}, appendCsrfT
 			return
 		}
 		reader := bytes.NewReader(result)
-		req, err = http.NewRequest("POST", url, reader)
+		m := "POST"
+		if method == PUT {
+			m = "PUT"
+		}
+		req, err = http.NewRequest(m, url, reader)
 	} else {
 		req, err = http.NewRequest("GET", url, nil)
 	}
@@ -131,7 +149,7 @@ func baseCommonRequest(url string, post bool, parameter interface{}, appendCsrfT
 		err = fmt.Errorf("创建Reqeuest异常, %s", err)
 		return
 	}
-	addHeader(req, post, ext)
+	addHeader(req, method == POST || method == PUT, ext)
 	if appendCsrfToken {
 		req.Header.Add("x-csrf-token", GetCsrtToken())
 	}

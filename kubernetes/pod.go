@@ -3,8 +3,9 @@ package kubernetes
 import (
 	"encoding/json"
 	"fmt"
-	tea "github.com/charmbracelet/bubbletea"
 	"os"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 type PodApi interface {
@@ -14,9 +15,10 @@ type PodApi interface {
 
 type PodModel struct {
 	BaseModel
-	pods   map[string]Pod
-	enable bool
-	tail   int
+	pods    map[string]Pod
+	enable  bool
+	tail    int
+	restart bool
 }
 
 func (m *PodModel) Init() tea.Cmd {
@@ -85,6 +87,8 @@ func (m *PodModel) PodList(namespace, filter string, pageNumber, pageSize int) (
 	if filter != "" {
 		filter = fmt.Sprintf("name,%s", filter)
 	}
+
+	// https://domain.../api/v1/deployment/stage-2?filterBy=name,payment&itemsPerPage=50&name=&page=1&sortBy=d,creationTimestamp
 	url := fmt.Sprintf("https://%s:%d/api/v1/pod/%s?filterBy=%s&itemsPerPage=%d&name=&page=%d&sortBy=d,creationTimestamp", m.req.Ip, m.req.Port, namespace, filter, pageSize, pageNumber)
 
 	data, err := commonRequest(url, false, nil, true, true, nil)
@@ -130,8 +134,8 @@ func ShowPod(req *Request, namespace, filter string, log bool, pageSize, tail in
 			namespace: namespace,
 			req:       req,
 		},
-		pod: p.selected,
-		tail: tail,
+		pod:      p.selected,
+		tail:     tail,
 		download: download,
 	}
 	if log {
