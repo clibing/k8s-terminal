@@ -115,62 +115,41 @@ func (m *PodModel) scalePod(namespace, name string, scale int) (error, string) {
 	}
 	var scaleResult ScaleResult
 	json.Unmarshal([]byte(data), &scaleResult)
-	fmt.Printf("已经调整Pod共: %d, 待调整的pod: %d\n", scaleResult.DesiredReplicas, scaleResult.ActualReplicas)
-	wait(1, time.Second*1, "执行已经发送.")
+	fmt.Printf("Pod的最终副本数: %d, 当前已经存在pod副本数: %d\n", scaleResult.DesiredReplicas, scaleResult.ActualReplicas)
+	wait(1, time.Second*1, "等待%d秒，指令已经发送.")
 	return nil, ""
 }
 
 func wait(times int, timeout time.Duration, message string) {
-	for i := 0; i < times; i++ {
+	for i := times; i > 0; i-- {
 		time.Sleep(timeout)
-		fmt.Println(message)
+		fmt.Printf(message+"\n", i)
 	}
 }
 
-func (m *PodModel) RestartPod(name string) {
+func (m *PodModel) RestartPod(namespace, name string, desited, running int) {
 	// fetch current pod size
-	podInfo := m.pods[name]
-	size := podInfo.PodStatus.Desired
-	running := podInfo.PodStatus.Running
-	fmt.Printf("当前Pod共: %d, 正在运行的pod: %d\n", size, running)
-
-	// scale to zero
+	fmt.Printf("当前Pod共: %d, 正在运行的pod: %d\n", desited, running)
+	// 缩减 pod 的副本数为 0
 	m.scalePod(m.namespace, name, 0)
-	time.Sleep(1 * time.Second)
-	fmt.Println("等待系统1秒.")
-	time.Sleep(1 * time.Second)
-	fmt.Println("等待系统2秒..")
-	time.Sleep(1 * time.Second)
-	fmt.Println("等待系统3秒...")
-
-	m.scalePod(m.namespace, name, size)
-	time.Sleep(1 * time.Second)
-	fmt.Println("等待系统3秒...")
+	wait(5, time.Second*1, "缩小POD副本数,等待系统%d秒.")
+	// 还原pod 的副本数
+	m.scalePod(m.namespace, name, desited)
+	wait(3, time.Second*1, "还原POD副本数,等待系统%d秒.")
 }
 
 // 重启pod
-func ScalePod(req *Request, namespace, filter string, scale int) (err error) {
+func ScalePod(req *Request, namespace, name string, scale int) (err error) {
 	p := PodModel{
 		BaseModel: BaseModel{
 			namespace: namespace,
-			filter:    filter,
+			filter:    name,
 			req:       req,
 		},
 	}
 
-	cmd := tea.NewProgram(&p)
-	if err := cmd.Start(); err != nil {
-		fmt.Println("start failed:", err)
-		os.Exit(1)
-	}
-	if p.selected == "" {
-		fmt.Println("没有选择Pod，本次结束")
-		return
-	}
 	// 不是重启，进行pod副本scale
-	pod := p.pods[p.selected]
-	name := pod.ObjectMeta.Labels.App
-	fmt.Println("当前POD的label.app name:  ", name)
+	fmt.Println("当前POD的name:  ", name)
 	p.scalePod(namespace, name, scale)
 
 	return
@@ -196,7 +175,8 @@ func RestartPod(req *Request, namespace, filter string) (err error) {
 		return
 	}
 	// scale Desired to zero, and zero to Desired
-	p.RestartPod(p.selected)
+	pod := p.pods[p.selected]
+	p.RestartPod(namespace, pod.ObjectMeta.Labels.App, pod.PodStatus.Desired, pod.PodStatus.Current)
 	return
 }
 
