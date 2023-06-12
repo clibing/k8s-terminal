@@ -163,7 +163,7 @@ func baseCommonRequest(url string, method int, parameter interface{}, appendCsrf
 	}
 	defer response.Body.Close()
 	code = response.StatusCode
-	if response.StatusCode != 200 {
+	if response.StatusCode != 200 && response.StatusCode != 201 {
 		err = fmt.Errorf("响应异常, http status: %d, err: %s", response.StatusCode, err)
 		return
 	}

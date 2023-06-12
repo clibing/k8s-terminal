@@ -370,3 +370,21 @@ type ScaleResult struct {
 	DesiredReplicas int `json:"desiredReplicas"`
 	ActualReplicas  int `json:"actualReplicas"`
 }
+
+// secret update model
+type SecretUpdate struct {
+	Kind           string            `json:"kind"`       // Secret
+	ApiVersion     string            `json:"apiVersion"` // v1
+	SecretMetadata SecretMetadata    `json:"metadata"`
+	Data           map[string]string `json:"data"` //  application-prod.yml --> content base64 value
+	Type           string            `json:"type"` // Opaque
+}
+
+type SecretMetadata struct {
+	Name              string    `json:"name"`
+	Namespace         string    `json:"namespace"`
+	SelfLink          string    `json:"selfLink"`
+	Uid               string    `json:"uid"`
+	ResourceVersion   string    `json:"resourceVersion"`
+	CreationTimestamp time.Time `json:"createTimestamp"`
+}

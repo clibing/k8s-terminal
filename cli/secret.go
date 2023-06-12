@@ -21,7 +21,7 @@ func secretCommand(req *kubernetes.Request) *cli.Command {
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "secret-namespace",
-				Aliases: []string{"ns"},
+				Aliases: []string{"s", "ns"},
 				Usage:   "secret 当前所在的namespace",
 			},
 			&cli.StringFlag{
@@ -29,17 +29,23 @@ func secretCommand(req *kubernetes.Request) *cli.Command {
 				Aliases: []string{"n"},
 				Usage:   "根据secret的名字进行所说",
 			},
+			&cli.StringFlag{
+				Name:    "secret-edit",
+				Aliases: []string{"e"},
+				Usage:   "编辑secret内容，并同步到k8s",
+			},
 		},
 		Action: func(c *cli.Context) error {
 			ns := ""
 			name := ""
+			edit := false
 			for _, v := range c.FlagNames() {
 				if v == "secret-namespace" {
 					ns = c.String("secret-namespace")
 					continue
 				}
-				if v == "ns" {
-					ns = c.String("ns")
+				if v == "s" {
+					ns = c.String("s")
 					continue
 				}
 
@@ -51,8 +57,17 @@ func secretCommand(req *kubernetes.Request) *cli.Command {
 					name = c.String("n")
 					continue
 				}
+
+				if v == "secret-edit" {
+					edit = c.Bool("secret-edit")
+					continue
+				}
+				if v == "e" {
+					edit = c.Bool("e")
+					continue
+				}
 			}
-			kubernetes.ShowSecret(ns, name, req)
+			kubernetes.ShowSecret(ns, name, req, edit)
 			return nil
 		},
 	}
