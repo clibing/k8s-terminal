@@ -236,6 +236,7 @@ type Service struct {
 	ClusterIP         string           `json:"clusterIP"`
 	EventList         EventList        `json:"eventList"`
 	PodList           PodList          `json:"podList"`
+	ServiceList       ServiceList      `json:"serviceList"`
 	SessionAffinity   string           `json:"sessionAffinity"`
 	Errors            []interface{}    `json:"errors"`
 }

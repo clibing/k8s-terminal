@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -146,6 +147,7 @@ func (m *DeploymentModel) DeploymentDetail(namespace, name string) (deployment D
 		panic(err)
 	}
 
+	// fmt.Println(string(data))
 	var response Deployment
 	json.Unmarshal([]byte(data), &response)
 	deployment = response
@@ -201,7 +203,7 @@ func showDeploymentDetailWithTable(deployment Deployment) {
 			if i == 0 {
 				column[0] = "1"
 				column[1] = deployment.ObjectMeta.Name
-				column[2] = deployment.NewReplicaSet.ContainerImages[0]
+				column[2] = strings.Join(deployment.NewReplicaSet.ContainerImages, "\n")
 				//status := deployment.PodList.Status
 				//column[3] = fmt.Sprintf("running(%d)/pending(%d)/failed(%d)/succeeded(%d)", status.Running, status.Pending, status.Failed, status.Succeeded)
 

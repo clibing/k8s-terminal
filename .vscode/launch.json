@@ -11,14 +11,11 @@
             "mode": "auto",
             "program": "${workspaceRoot}/main.go",
             "args": [
-                "pod",
-                "--ns",
+                "d",
+                "-s",
                 "stage-2",
                 "-n",
-                "payment",
-                "--scale",
-                "--desired",
-                "2",
+                "gen",
             ]
         }
     ]
